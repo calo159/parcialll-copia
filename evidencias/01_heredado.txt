@@ -1,0 +1,434 @@
+FAIL tests/cajaBlanca.test.js
+  Caminos independientes de calc
+    √ CB01 camino base: 5 kg urbana normal lunes -> 9000 (7 ms)
+    √ CB02 peso <= 0 verdadero -> error (10 ms)
+    √ CB03 peso > 50 verdadero -> error (1 ms)
+    √ CB04 tramo 1: 2 kg -> 6000
+    √ CB05 tramo 3: 12 kg -> 9000 + 2*800 = 10600 (1 ms)
+    √ CB06 zona rural -> 10800
+    √ CB07 zona nacional -> 13500
+    × CB08 ninguna zona coincide ('marte') -> error (1 ms)
+    √ CB09 fin de semana (domingo) -> 11000 (1 ms)
+    × CB10 cliente frecuente -> 8550 -> 8600 (2 ms)
+    × CB11 cliente vip -> 7650 -> 7700 (1 ms)
+    √ CB12 cupón ENVIO10 -> 8100 (1 ms)
+    × CB13 cupón distinto de ENVIO10 ('XYZ') -> error
+    √ CB14 costo < 5000: 1 kg vip ENVIO10 -> 5000 (1 ms)
+    √ CB15 flag verdadero imprime el costo y retorna 9000 (1 ms)
+
+  ● Caminos independientes de calc › CB08 ninguna zona coincide ('marte') -> error
+
+    expect(received).toThrow()
+
+    Received function did not throw
+
+      26 |   });
+      27 |   test("CB08 ninguna zona coincide ('marte') -> error", () => {
+    > 28 |     expect(() => calc(5, "marte", "normal", 1)).toThrow();
+         |                                                 ^
+      29 |   });
+      30 |   test("CB09 fin de semana (domingo) -> 11000", () => {
+      31 |     expect(calc(5, "urbana", "normal", 7)).toBe(11000);
+
+      at Object.toThrow (tests/cajaBlanca.test.js:28:49)
+
+  ● Caminos independientes de calc › CB10 cliente frecuente -> 8550 -> 8600
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 8600
+    Received: 8500
+
+      32 |   });
+      33 |   test("CB10 cliente frecuente -> 8550 -> 8600", () => {
+    > 34 |     expect(calc(5, "urbana", "frecuente", 1)).toBe(8600);
+         |                                               ^
+      35 |   });
+      36 |   test("CB11 cliente vip -> 7650 -> 7700", () => {
+      37 |     expect(calc(5, "urbana", "vip", 1)).toBe(7700);
+
+      at Object.toBe (tests/cajaBlanca.test.js:34:47)
+
+  ● Caminos independientes de calc › CB11 cliente vip -> 7650 -> 7700
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 7700
+    Received: 7600
+
+      35 |   });
+      36 |   test("CB11 cliente vip -> 7650 -> 7700", () => {
+    > 37 |     expect(calc(5, "urbana", "vip", 1)).toBe(7700);
+         |                                         ^
+      38 |   });
+      39 |   test("CB12 cupón ENVIO10 -> 8100", () => {
+      40 |     expect(calc(5, "urbana", "normal", 1, "ENVIO10")).toBe(8100);
+
+      at Object.toBe (tests/cajaBlanca.test.js:37:41)
+
+  ● Caminos independientes de calc › CB13 cupón distinto de ENVIO10 ('XYZ') -> error
+
+    expect(received).toThrow()
+
+    Received function did not throw
+
+      41 |   });
+      42 |   test("CB13 cupón distinto de ENVIO10 ('XYZ') -> error", () => {
+    > 43 |     expect(() => calc(5, "urbana", "normal", 1, "XYZ")).toThrow();
+         |                                                         ^
+      44 |   });
+      45 |   test("CB14 costo < 5000: 1 kg vip ENVIO10 -> 5000", () => {
+      46 |     expect(calc(1, "urbana", "vip", 1, "ENVIO10")).toBe(5000);
+
+      at Object.toThrow (tests/cajaBlanca.test.js:43:57)
+
+FAIL tests/cajaNegra.reglas.test.js
+  R4 - Recargo por zona
+    √ TC16 [R4][PE] rural, 5 kg -> 9000 * 1.20 = 10800 (8 ms)
+    √ TC17 [R4][PE] nacional, 5 kg -> 9000 * 1.50 = 13500 (1 ms)
+    √ TC18 [R4][PE] nacional, 1 kg -> 6000 * 1.50 = 9000
+  R5 - Recargo de fin de semana
+    × TC19 [R5][VL] sábado (6) -> 9000 + 2000 = 11000 (2 ms)
+    √ TC20 [R5][VL] domingo (7) -> 11000
+    √ TC21 [R5][VL] viernes (5) -> sin recargo = 9000
+  R6 - Tabla de decisión cliente x cupón x fin de semana
+    × TC22 [R6][TD] frecuente, entre semana -> 8550 redondeado = 8600 (1 ms)
+    × TC23 [R6][TD] vip, entre semana -> 7650 redondeado = 7700
+    √ TC24 [R6][TD] normal + ENVIO10 -> 8100
+    × TC25 [R6][TD] vip + ENVIO10 -> 9000*0.85*0.90 = 6885 -> 6900
+    × TC36 [R6][TD] frecuente + ENVIO10 -> 9000*0.95*0.90 = 7695 -> 7700
+    √ TC26 [R6][TD] frecuente + ENVIO10 + domingo -> 11000*0.95*0.90 = 9405 -> 9400
+    × TC27 [R6][TD] vip + ENVIO10 + sábado -> 11000*0.85*0.90 = 8415 -> 8400 (1 ms)
+    × TC28 [R6][TD] frecuente + sábado -> 11000*0.95 = 10450 -> 10500
+    × TC29 [R6][TD] vip + domingo -> 11000*0.85 = 9350 -> 9400 (1 ms)
+  R7 - Cupón inexistente
+    × TC30 [R7][PE] cupón 'GRATIS' lanza error (F impar) (1 ms)
+  R8 - Costo mínimo y redondeo
+    √ TC31 [R8][VL] 1 kg vip + ENVIO10 -> 4590 sube al mínimo 5000
+    √ TC32 [R8][VL] 2 kg frecuente + ENVIO10 -> 5130 -> 5100
+  Casos integrales (todas las reglas)
+    × TC33 [R3-R8] 4 kg rural vip sábado ENVIO10 -> 9792 -> 9800
+    √ TC34 [R3-R8] 12.5 kg nacional frecuente domingo ENVIO10 -> 15817.5 -> 15800
+
+  ● R5 - Recargo de fin de semana › TC19 [R5][VL] sábado (6) -> 9000 + 2000 = 11000
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 11000
+    Received: 9000
+
+      18 | describe("R5 - Recargo de fin de semana", () => {
+      19 |   test("TC19 [R5][VL] sábado (6) -> 9000 + 2000 = 11000", () => {
+    > 20 |     expect(calc(5, "urbana", "normal", 6)).toBe(11000);
+         |                                            ^
+      21 |   });
+      22 |   test("TC20 [R5][VL] domingo (7) -> 11000", () => {
+      23 |     expect(calc(5, "urbana", "normal", 7)).toBe(11000);
+
+      at Object.toBe (tests/cajaNegra.reglas.test.js:20:44)
+
+  ● R6 - Tabla de decisión cliente x cupón x fin de semana › TC22 [R6][TD] frecuente, entre semana -> 8550 redondeado = 8600
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 8600
+    Received: 8500
+
+      30 | describe("R6 - Tabla de decisión cliente x cupón x fin de semana", () => {
+      31 |   test("TC22 [R6][TD] frecuente, entre semana -> 8550 redondeado = 8600", () => {
+    > 32 |     expect(calc(5, "urbana", "frecuente", 1)).toBe(8600);
+         |                                               ^
+      33 |   });
+      34 |   test("TC23 [R6][TD] vip, entre semana -> 7650 redondeado = 7700", () => {
+      35 |     expect(calc(5, "urbana", "vip", 1)).toBe(7700);
+
+      at Object.toBe (tests/cajaNegra.reglas.test.js:32:47)
+
+  ● R6 - Tabla de decisión cliente x cupón x fin de semana › TC23 [R6][TD] vip, entre semana -> 7650 redondeado = 7700
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 7700
+    Received: 7600
+
+      33 |   });
+      34 |   test("TC23 [R6][TD] vip, entre semana -> 7650 redondeado = 7700", () => {
+    > 35 |     expect(calc(5, "urbana", "vip", 1)).toBe(7700);
+         |                                         ^
+      36 |   });
+      37 |   test("TC24 [R6][TD] normal + ENVIO10 -> 8100", () => {
+      38 |     expect(calc(5, "urbana", "normal", 1, "ENVIO10")).toBe(8100);
+
+      at Object.toBe (tests/cajaNegra.reglas.test.js:35:41)
+
+  ● R6 - Tabla de decisión cliente x cupón x fin de semana › TC25 [R6][TD] vip + ENVIO10 -> 9000*0.85*0.90 = 6885 -> 6900
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 6900
+    Received: 6800
+
+      39 |   });
+      40 |   test("TC25 [R6][TD] vip + ENVIO10 -> 9000*0.85*0.90 = 6885 -> 6900", () => {
+    > 41 |     expect(calc(5, "urbana", "vip", 1, "ENVIO10")).toBe(6900);
+         |                                                    ^
+      42 |   });
+      43 |   test("TC36 [R6][TD] frecuente + ENVIO10 -> 9000*0.95*0.90 = 7695 -> 7700", () => {
+      44 |     expect(calc(5, "urbana", "frecuente", 1, "ENVIO10")).toBe(7700);
+
+      at Object.toBe (tests/cajaNegra.reglas.test.js:41:52)
+
+  ● R6 - Tabla de decisión cliente x cupón x fin de semana › TC36 [R6][TD] frecuente + ENVIO10 -> 9000*0.95*0.90 = 7695 -> 7700
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 7700
+    Received: 7600
+
+      42 |   });
+      43 |   test("TC36 [R6][TD] frecuente + ENVIO10 -> 9000*0.95*0.90 = 7695 -> 7700", () => {
+    > 44 |     expect(calc(5, "urbana", "frecuente", 1, "ENVIO10")).toBe(7700);
+         |                                                          ^
+      45 |   });
+      46 |   test("TC26 [R6][TD] frecuente + ENVIO10 + domingo -> 11000*0.95*0.90 = 9405 -> 9400", () => {
+      47 |     expect(calc(5, "urbana", "frecuente", 7, "ENVIO10")).toBe(9400);
+
+      at Object.toBe (tests/cajaNegra.reglas.test.js:44:58)
+
+  ● R6 - Tabla de decisión cliente x cupón x fin de semana › TC27 [R6][TD] vip + ENVIO10 + sábado -> 11000*0.85*0.90 = 8415 -> 8400
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 8400
+    Received: 6800
+
+      48 |   });
+      49 |   test("TC27 [R6][TD] vip + ENVIO10 + sábado -> 11000*0.85*0.90 = 8415 -> 8400", () => {
+    > 50 |     expect(calc(5, "urbana", "vip", 6, "ENVIO10")).toBe(8400);
+         |                                                    ^
+      51 |   });
+      52 |   test("TC28 [R6][TD] frecuente + sábado -> 11000*0.95 = 10450 -> 10500", () => {
+      53 |     expect(calc(5, "urbana", "frecuente", 6)).toBe(10500);
+
+      at Object.toBe (tests/cajaNegra.reglas.test.js:50:52)
+
+  ● R6 - Tabla de decisión cliente x cupón x fin de semana › TC28 [R6][TD] frecuente + sábado -> 11000*0.95 = 10450 -> 10500
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 10500
+    Received: 8500
+
+      51 |   });
+      52 |   test("TC28 [R6][TD] frecuente + sábado -> 11000*0.95 = 10450 -> 10500", () => {
+    > 53 |     expect(calc(5, "urbana", "frecuente", 6)).toBe(10500);
+         |                                               ^
+      54 |   });
+      55 |   test("TC29 [R6][TD] vip + domingo -> 11000*0.85 = 9350 -> 9400", () => {
+      56 |     expect(calc(5, "urbana", "vip", 7)).toBe(9400);
+
+      at Object.toBe (tests/cajaNegra.reglas.test.js:53:47)
+
+  ● R6 - Tabla de decisión cliente x cupón x fin de semana › TC29 [R6][TD] vip + domingo -> 11000*0.85 = 9350 -> 9400
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 9400
+    Received: 9300
+
+      54 |   });
+      55 |   test("TC29 [R6][TD] vip + domingo -> 11000*0.85 = 9350 -> 9400", () => {
+    > 56 |     expect(calc(5, "urbana", "vip", 7)).toBe(9400);
+         |                                         ^
+      57 |   });
+      58 | });
+      59 |
+
+      at Object.toBe (tests/cajaNegra.reglas.test.js:56:41)
+
+  ● R7 - Cupón inexistente › TC30 [R7][PE] cupón 'GRATIS' lanza error (F impar)
+
+    expect(received).toThrow()
+
+    Received function did not throw
+
+      60 | describe("R7 - Cupón inexistente", () => {
+      61 |   test("TC30 [R7][PE] cupón 'GRATIS' lanza error (F impar)", () => {
+    > 62 |     expect(() => calc(5, "urbana", "normal", 1, "GRATIS")).toThrow();
+         |                                                            ^
+      63 |   });
+      64 | });
+      65 |
+
+      at Object.toThrow (tests/cajaNegra.reglas.test.js:62:60)
+
+  ● Casos integrales (todas las reglas) › TC33 [R3-R8] 4 kg rural vip sábado ENVIO10 -> 9792 -> 9800
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 9800
+    Received: 8200
+
+      75 | describe("Casos integrales (todas las reglas)", () => {
+      76 |   test("TC33 [R3-R8] 4 kg rural vip sábado ENVIO10 -> 9792 -> 9800", () => {
+    > 77 |     expect(calc(4, "rural", "vip", 6, "ENVIO10")).toBe(9800);
+         |                                                   ^
+      78 |   });
+      79 |   test("TC34 [R3-R8] 12.5 kg nacional frecuente domingo ENVIO10 -> 15817.5 -> 15800", () => {
+      80 |     expect(calc(12.5, "nacional", "frecuente", 7, "ENVIO10")).toBe(15800);
+
+      at Object.toBe (tests/cajaNegra.reglas.test.js:77:51)
+
+FAIL tests/cajaNegra.validaciones.test.js
+  R1 - Validación del peso
+    × TC01 [R1][VL] peso = 0 lanza 'peso inválido' (29 ms)
+    √ TC02 [R1][PE] peso negativo (-1) lanza error (1 ms)
+    √ TC03 [R1][VL] peso = 50.01 (PMAX + 0.01) lanza error
+    √ TC04 [R1][VL] peso = 50 (PMAX) es válido -> 41000 (1 ms)
+    √ TC05 [R1][VL] peso = 0.01 es válido -> 6000 (1 ms)
+  R3 - Valores límite de los tramos
+    √ TC06 [R3][VL] peso = 2.99 (L1 - 0.01) -> tramo 1 = 6000
+    × TC07 [R3][VL] peso = 3 (L1, excluido) -> tramo 2 = 9000 (1 ms)
+    √ TC08 [R3][VL] peso = 3.01 (L1 + 0.01) -> 9000 (1 ms)
+    √ TC09 [R3][VL] peso = 10 (L2, incluido) -> 9000
+    √ TC10 [R3][VL] peso = 10.01 (L2 + 0.01) -> 9008 redondeado = 9000
+    √ TC11 [R3][PE] peso = 10.5 -> 9000 + 0.5*800 = 9400 (1 ms)
+    × TC12 [R3][VL] peso = 49.99 (PMAX - 0.01) -> 40992 redondeado = 41000
+    × TC35 [R3][VL] peso = 3 rural -> 9000 * 1.20 = 10800 (1 ms)
+  R2 - Validación de zona y día
+    × TC13 [R2][PE] zona inexistente 'marte' lanza error
+    × TC14 [R2][VL] día = 0 lanza error
+    × TC15 [R2][VL] día = 8 lanza error
+
+  ● R1 - Validación del peso › TC01 [R1][VL] peso = 0 lanza 'peso inválido'
+
+    expect(received).toThrow(expected)
+
+    Expected substring: "peso inválido"
+    Received message:   "peso invalido"
+
+          12 |   let t;
+          13 |   if (p <= 0 || p > 50) {
+        > 14 |     throw new Error("peso invalido");
+             |           ^
+          15 |   }
+          16 |   if (p <= CONFIG.L1) {
+          17 |     t = 6000;
+
+      at calc (envios.js:14:11)
+      at calc (tests/cajaNegra.validaciones.test.js:7:18)
+      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
+      at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
+      at Object.toThrow (tests/cajaNegra.validaciones.test.js:7:50)
+      at Object.toThrow (tests/cajaNegra.validaciones.test.js:7:50)
+
+  ● R3 - Valores límite de los tramos › TC07 [R3][VL] peso = 3 (L1, excluido) -> tramo 2 = 9000
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 9000
+    Received: 6000
+
+      26 |   });
+      27 |   test("TC07 [R3][VL] peso = 3 (L1, excluido) -> tramo 2 = 9000", () => {
+    > 28 |     expect(calc(3, "urbana", "normal", 1)).toBe(9000);
+         |                                            ^
+      29 |   });
+      30 |   test("TC08 [R3][VL] peso = 3.01 (L1 + 0.01) -> 9000", () => {
+      31 |     expect(calc(3.01, "urbana", "normal", 1)).toBe(9000);
+
+      at Object.toBe (tests/cajaNegra.validaciones.test.js:28:44)
+
+  ● R3 - Valores límite de los tramos › TC12 [R3][VL] peso = 49.99 (PMAX - 0.01) -> 40992 redondeado = 41000
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 41000
+    Received: 40900
+
+      41 |   });
+      42 |   test("TC12 [R3][VL] peso = 49.99 (PMAX - 0.01) -> 40992 redondeado = 41000", () => {
+    > 43 |     expect(calc(49.99, "urbana", "normal", 1)).toBe(41000);
+         |                                                ^
+      44 |   });
+      45 |   test("TC35 [R3][VL] peso = 3 rural -> 9000 * 1.20 = 10800", () => {
+      46 |     expect(calc(3, "rural", "normal", 1)).toBe(10800);
+
+      at Object.toBe (tests/cajaNegra.validaciones.test.js:43:48)
+
+  ● R3 - Valores límite de los tramos › TC35 [R3][VL] peso = 3 rural -> 9000 * 1.20 = 10800
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 10800
+    Received: 7200
+
+      44 |   });
+      45 |   test("TC35 [R3][VL] peso = 3 rural -> 9000 * 1.20 = 10800", () => {
+    > 46 |     expect(calc(3, "rural", "normal", 1)).toBe(10800);
+         |                                           ^
+      47 |   });
+      48 | });
+      49 |
+
+      at Object.toBe (tests/cajaNegra.validaciones.test.js:46:43)
+
+  ● R2 - Validación de zona y día › TC13 [R2][PE] zona inexistente 'marte' lanza error
+
+    expect(received).toThrow()
+
+    Received function did not throw
+
+      50 | describe("R2 - Validación de zona y día", () => {
+      51 |   test("TC13 [R2][PE] zona inexistente 'marte' lanza error", () => {
+    > 52 |     expect(() => calc(5, "marte", "normal", 1)).toThrow();
+         |                                                 ^
+      53 |   });
+      54 |   test("TC14 [R2][VL] día = 0 lanza error", () => {
+      55 |     expect(() => calc(5, "urbana", "normal", 0)).toThrow();
+
+      at Object.toThrow (tests/cajaNegra.validaciones.test.js:52:49)
+
+  ● R2 - Validación de zona y día › TC14 [R2][VL] día = 0 lanza error
+
+    expect(received).toThrow()
+
+    Received function did not throw
+
+      53 |   });
+      54 |   test("TC14 [R2][VL] día = 0 lanza error", () => {
+    > 55 |     expect(() => calc(5, "urbana", "normal", 0)).toThrow();
+         |                                                  ^
+      56 |   });
+      57 |   test("TC15 [R2][VL] día = 8 lanza error", () => {
+      58 |     expect(() => calc(5, "urbana", "normal", 8)).toThrow();
+
+      at Object.toThrow (tests/cajaNegra.validaciones.test.js:55:50)
+
+  ● R2 - Validación de zona y día › TC15 [R2][VL] día = 8 lanza error
+
+    expect(received).toThrow()
+
+    Received function did not throw
+
+      56 |   });
+      57 |   test("TC15 [R2][VL] día = 8 lanza error", () => {
+    > 58 |     expect(() => calc(5, "urbana", "normal", 8)).toThrow();
+         |                                                  ^
+      59 |   });
+      60 | });
+      61 |
+
+      at Object.toThrow (tests/cajaNegra.validaciones.test.js:58:50)
+
+-----------|---------|----------|---------|---------|-------------------
+File       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-----------|---------|----------|---------|---------|-------------------
+All files  |     100 |      100 |     100 |     100 |                   
+ envios.js |     100 |      100 |     100 |     100 |                   
+-----------|---------|----------|---------|---------|-------------------
+Test Suites: 3 failed, 3 total
+Tests:       21 failed, 30 passed, 51 total
+Snapshots:   0 total
+Time:        3.976 s
+Ran all test suites.
