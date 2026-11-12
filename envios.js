@@ -55,7 +55,8 @@ function calc(p, z, c, d, cup = null, flag = false) {
   if (flag) {
     console.log("costo:", t);
   }
-  return Math.trunc(t / 100) * 100;
+  // DEF-06: redondeo al múltiplo de 100 más cercano ($50 sube)
+  return Math.floor(Number(t.toFixed(6)) / 100 + 0.5) * 100;
 }
 
 module.exports = { calc, CONFIG };
