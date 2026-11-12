@@ -1,0 +1,19 @@
+{
+  "name": "enviaya-envios",
+  "version": "1.0.0",
+  "description": "EnvíaYa - cálculo del costo de envíos (Parcial 3, Ingeniería de Software I)",
+  "main": "envios.js",
+  "scripts": {
+    "test": "jest --verbose",
+    "test:cov": "jest --verbose --coverage"
+  },
+  "author": "Carlos David Sierra",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "jest": "29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": ["envios.js"]
+  }
+}
