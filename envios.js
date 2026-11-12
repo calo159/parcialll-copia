@@ -13,6 +13,9 @@ function calc(p, z, c, d, cup = null, flag = false) {
   if (p <= 0 || p > 50) {
     throw new Error("peso invalido");
   }
+  if (!Number.isInteger(d) || d < 1 || d > 7) {
+    throw new Error("día inválido"); // DEF-05
+  }
   if (p < CONFIG.L1) { // DEF-01: el tramo 1 no incluye el límite (D impar)
     t = 6000;
   } else if (p <= CONFIG.L2) {
