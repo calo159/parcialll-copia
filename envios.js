@@ -1,4 +1,4 @@
-// envios.js — código heredado v1.0.0 (traducción fiel de envios.py)
+// envios.js — código heredado con correcciones (v1.0.1) (traducción fiel de envios.py)
 const CONFIG = {
   L1: 3, // <- pon tus valores
   L2: 10,
@@ -13,7 +13,7 @@ function calc(p, z, c, d, cup = null, flag = false) {
   if (p <= 0 || p > 50) {
     throw new Error("peso invalido");
   }
-  if (p <= CONFIG.L1) {
+  if (p < CONFIG.L1) { // DEF-01: el tramo 1 no incluye el límite (D impar)
     t = 6000;
   } else if (p <= CONFIG.L2) {
     t = 9000;
