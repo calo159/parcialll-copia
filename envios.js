@@ -11,7 +11,7 @@ const CONFIG = {
 function calc(p, z, c, d, cup = null, flag = false) {
   let t;
   if (p <= 0 || p > 50) {
-    throw new Error("peso invalido");
+    throw new Error("peso inválido");
   }
   if (!Number.isInteger(d) || d < 1 || d > 7) {
     throw new Error("día inválido"); // DEF-05
