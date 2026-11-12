@@ -1,0 +1,78 @@
+PASS tests/cajaNegra.reglas.test.js
+  R4 - Recargo por zona
+    √ TC16 [R4][PE] rural, 5 kg -> 9000 * 1.20 = 10800 (14 ms)
+    √ TC17 [R4][PE] nacional, 5 kg -> 9000 * 1.50 = 13500 (1 ms)
+    √ TC18 [R4][PE] nacional, 1 kg -> 6000 * 1.50 = 9000 (1 ms)
+  R5 - Recargo de fin de semana
+    √ TC19 [R5][VL] sábado (6) -> 9000 + 2000 = 11000 (1 ms)
+    √ TC20 [R5][VL] domingo (7) -> 11000 (1 ms)
+    √ TC21 [R5][VL] viernes (5) -> sin recargo = 9000
+  R6 - Tabla de decisión cliente x cupón x fin de semana
+    √ TC22 [R6][TD] frecuente, entre semana -> 8550 redondeado = 8600 (1 ms)
+    √ TC23 [R6][TD] vip, entre semana -> 7650 redondeado = 7700 (1 ms)
+    √ TC24 [R6][TD] normal + ENVIO10 -> 8100
+    √ TC25 [R6][TD] vip + ENVIO10 -> 9000*0.85*0.90 = 6885 -> 6900
+    √ TC36 [R6][TD] frecuente + ENVIO10 -> 9000*0.95*0.90 = 7695 -> 7700
+    √ TC26 [R6][TD] frecuente + ENVIO10 + domingo -> 11000*0.95*0.90 = 9405 -> 9400 (1 ms)
+    √ TC27 [R6][TD] vip + ENVIO10 + sábado -> 11000*0.85*0.90 = 8415 -> 8400 (1 ms)
+    √ TC28 [R6][TD] frecuente + sábado -> 11000*0.95 = 10450 -> 10500
+    √ TC29 [R6][TD] vip + domingo -> 11000*0.85 = 9350 -> 9400 (1 ms)
+  R7 - Cupón inexistente
+    √ TC30 [R7][PE] cupón 'GRATIS' lanza error (F impar) (19 ms)
+  R8 - Costo mínimo y redondeo
+    √ TC31 [R8][VL] 1 kg vip + ENVIO10 -> 4590 sube al mínimo 5000
+    √ TC32 [R8][VL] 2 kg frecuente + ENVIO10 -> 5130 -> 5100 (1 ms)
+  Casos integrales (todas las reglas)
+    √ TC33 [R3-R8] 4 kg rural vip sábado ENVIO10 -> 9792 -> 9800
+    √ TC34 [R3-R8] 12.5 kg nacional frecuente domingo ENVIO10 -> 15817.5 -> 15800
+
+PASS tests/cajaBlanca.test.js
+  Caminos independientes de calc
+    √ CB01 camino base: 5 kg urbana normal lunes -> 9000 (16 ms)
+    √ CB02 peso <= 0 verdadero -> error (20 ms)
+    √ CB03 peso > 50 verdadero -> error (1 ms)
+    √ CB04 tramo 1: 2 kg -> 6000
+    √ CB05 tramo 3: 12 kg -> 9000 + 2*800 = 10600 (1 ms)
+    √ CB06 zona rural -> 10800
+    √ CB07 zona nacional -> 13500 (1 ms)
+    √ CB08 ninguna zona coincide ('marte') -> error
+    √ CB09 fin de semana (domingo) -> 11000 (1 ms)
+    √ CB10 cliente frecuente -> 8550 -> 8600
+    √ CB11 cliente vip -> 7650 -> 7700 (1 ms)
+    √ CB12 cupón ENVIO10 -> 8100
+    √ CB13 cupón distinto de ENVIO10 ('XYZ') -> error (1 ms)
+    √ CB14 costo < 5000: 1 kg vip ENVIO10 -> 5000
+    √ CB15 flag verdadero imprime el costo y retorna 9000 (2 ms)
+
+PASS tests/cajaNegra.validaciones.test.js
+  R1 - Validación del peso
+    √ TC01 [R1][VL] peso = 0 lanza 'peso inválido' (35 ms)
+    √ TC02 [R1][PE] peso negativo (-1) lanza error (1 ms)
+    √ TC03 [R1][VL] peso = 50.01 (PMAX + 0.01) lanza error (1 ms)
+    √ TC04 [R1][VL] peso = 50 (PMAX) es válido -> 41000
+    √ TC05 [R1][VL] peso = 0.01 es válido -> 6000 (1 ms)
+  R3 - Valores límite de los tramos
+    √ TC06 [R3][VL] peso = 2.99 (L1 - 0.01) -> tramo 1 = 6000
+    √ TC07 [R3][VL] peso = 3 (L1, excluido) -> tramo 2 = 9000 (1 ms)
+    √ TC08 [R3][VL] peso = 3.01 (L1 + 0.01) -> 9000
+    √ TC09 [R3][VL] peso = 10 (L2, incluido) -> 9000 (1 ms)
+    √ TC10 [R3][VL] peso = 10.01 (L2 + 0.01) -> 9008 redondeado = 9000
+    √ TC11 [R3][PE] peso = 10.5 -> 9000 + 0.5*800 = 9400 (1 ms)
+    √ TC12 [R3][VL] peso = 49.99 (PMAX - 0.01) -> 40992 redondeado = 41000
+    √ TC35 [R3][VL] peso = 3 rural -> 9000 * 1.20 = 10800 (1 ms)
+  R2 - Validación de zona y día
+    √ TC13 [R2][PE] zona inexistente 'marte' lanza error
+    √ TC14 [R2][VL] día = 0 lanza error (1 ms)
+    √ TC15 [R2][VL] día = 8 lanza error
+
+-----------|---------|----------|---------|---------|-------------------
+File       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-----------|---------|----------|---------|---------|-------------------
+All files  |     100 |      100 |     100 |     100 |                   
+ envios.js |     100 |      100 |     100 |     100 |                   
+-----------|---------|----------|---------|---------|-------------------
+Test Suites: 3 passed, 3 total
+Tests:       51 passed, 51 total
+Snapshots:   0 total
+Time:        1.603 s, estimated 3 s
+Ran all test suites.
