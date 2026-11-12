@@ -1,4 +1,4 @@
-// envios.js — cálculo del costo de envío de EnvíaYa (refactorización en curso)
+// envios.js — cálculo del costo de envío de EnvíaYa (v2.0.0)
 // Especificación personalizada: código 0182410125 (A=4 B=1 C=0 D=1 E=2 F=5)
 "use strict";
 
@@ -27,6 +27,49 @@ const COSTO_MINIMO = 5000;
 const MULTIPLO_REDONDEO = 100;
 const DECIMALES_TOLERANCIA = 6;
 
+// ===== Patrón Estrategia: recargo por zona (R4) =====
+class EstrategiaZona {
+  aplicarRecargo(_tarifa) {
+    throw new Error("EstrategiaZona es abstracta: implemente aplicarRecargo");
+  }
+}
+
+class ZonaUrbana extends EstrategiaZona {
+  aplicarRecargo(tarifa) {
+    return tarifa;
+  }
+}
+
+class ZonaConRecargo extends EstrategiaZona {
+  constructor(porcentaje) {
+    super();
+    this.porcentaje = porcentaje;
+  }
+
+  aplicarRecargo(tarifa) {
+    return tarifa + tarifa * this.porcentaje;
+  }
+}
+
+class ZonaRural extends ZonaConRecargo {
+  constructor() {
+    super(RECARGO_RURAL);
+  }
+}
+
+class ZonaNacional extends ZonaConRecargo {
+  constructor() {
+    super(RECARGO_NACIONAL);
+  }
+}
+
+const ESTRATEGIAS_ZONA = new Map([
+  ["urbana", new ZonaUrbana()],
+  ["rural", new ZonaRural()],
+  ["nacional", new ZonaNacional()],
+]);
+
+// ===== Funciones extraídas =====
 function validarPeso(peso) {
   if (typeof peso !== "number" || !(peso > 0 && peso <= PESO_MAXIMO_KG)) {
     throw new Error("peso inválido");
@@ -39,17 +82,16 @@ function validarDia(dia) {
   }
 }
 
+function obtenerEstrategiaZona(zona) {
+  const estrategia = ESTRATEGIAS_ZONA.get(zona);
+  if (!estrategia) throw new Error("zona inválida");
+  return estrategia;
+}
+
 function tarifaBase(peso) {
   if (peso < LIMITE_TRAMO_1_KG) return TARIFA_TRAMO_1;
   if (peso <= LIMITE_TRAMO_2_KG) return TARIFA_TRAMO_2;
   return TARIFA_TRAMO_2 + (peso - LIMITE_TRAMO_2_KG) * VALOR_KG_ADICIONAL;
-}
-
-function aplicarRecargoZona(tarifa, zona) {
-  if (zona === "urbana") return tarifa;
-  if (zona === "rural") return tarifa + tarifa * RECARGO_RURAL;
-  if (zona === "nacional") return tarifa + tarifa * RECARGO_NACIONAL;
-  throw new Error("zona inválida");
 }
 
 function esFinDeSemana(dia) {
@@ -77,15 +119,36 @@ function redondear(costo) {
   return Math.floor(exacto / MULTIPLO_REDONDEO + 0.5) * MULTIPLO_REDONDEO;
 }
 
-function calc(peso, zona, cliente, dia, cupon = null, flag = false) {
+/**
+ * Calcula el costo de un envío.
+ * @param {number} peso   kg, 0 < peso <= 50
+ * @param {string} zona   "urbana" | "rural" | "nacional"
+ * @param {string} cliente "normal" | "frecuente" | "vip"
+ * @param {number} dia    1..7 (6 = sábado, 7 = domingo)
+ * @param {string|null} [cupon] "ENVIO10" u omitido
+ * @returns {number} costo en pesos, múltiplo de 100
+ */
+function calc(peso, zona, cliente, dia, cupon = null) {
   validarPeso(peso);
   validarDia(dia);
-  let costo = aplicarRecargoZona(tarifaBase(peso), zona);
+  const estrategiaZona = obtenerEstrategiaZona(zona);
+  let costo = estrategiaZona.aplicarRecargo(tarifaBase(peso));
   if (esFinDeSemana(dia)) costo += RECARGO_FIN_DE_SEMANA;
   costo = aplicarDescuentos(costo, cliente, cupon);
-  const resultado = redondear(Math.max(costo, COSTO_MINIMO));
-  if (flag) console.log("costo:", Math.max(costo, COSTO_MINIMO));
-  return resultado;
+  return redondear(Math.max(costo, COSTO_MINIMO));
 }
 
-module.exports = { calc, tarifaBase, esFinDeSemana, aplicarDescuentos, redondear };
+module.exports = {
+  calc,
+  calcularCosto: calc,
+  tarifaBase,
+  esFinDeSemana,
+  aplicarDescuentos,
+  redondear,
+  EstrategiaZona,
+  ZonaUrbana,
+  ZonaConRecargo,
+  ZonaRural,
+  ZonaNacional,
+  ESTRATEGIAS_ZONA,
+};

@@ -45,10 +45,12 @@ describe("Caminos independientes de calc", () => {
   test("CB14 costo < 5000: 1 kg vip ENVIO10 -> 5000", () => {
     expect(calc(1, "urbana", "vip", 1, "ENVIO10")).toBe(5000);
   });
-  test("CB15 flag verdadero imprime el costo y retorna 9000", () => {
+  // v2.0.0 (cambio incompatible): se eliminó el argumento flag. Un 6.º argumento
+  // ya no tiene efecto: no se imprime nada y el resultado es el mismo.
+  test("CB15 (v2) flag eliminado: un 6.º argumento no imprime nada -> 9000", () => {
     const espia = jest.spyOn(console, "log").mockImplementation(() => {});
     expect(calc(5, "urbana", "normal", 1, null, true)).toBe(9000);
-    expect(espia).toHaveBeenCalledWith("costo:", 9000);
+    expect(espia).not.toHaveBeenCalled();
     espia.mockRestore();
   });
 });
