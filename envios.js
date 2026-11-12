@@ -26,6 +26,8 @@ function calc(p, z, c, d, cup = null, flag = false) {
     t = t + t * CONFIG.RECARGO_RURAL;
   } else if (z == "nacional") {
     t = t + t * CONFIG.RECARGO_NACIONAL;
+  } else {
+    throw new Error("zona inválida"); // DEF-04
   }
   // fin de semana
   if (d >= 6) { // DEF-02: sábado (6) y domingo (7)
