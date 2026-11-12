@@ -40,6 +40,8 @@ function calc(p, z, c, d, cup = null, flag = false) {
   if (cup != null) {
     if (cup == "ENVIO10") {
       t = t - t * 0.1;
+    } else {
+      throw new Error("cupón inválido"); // DEF-03: F impar, cupón inexistente es error
     }
   }
   if (t < 5000) {
