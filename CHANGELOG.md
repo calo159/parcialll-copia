@@ -7,6 +7,14 @@ y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-11-11
+
+### Added
+- CR-01: nueva zona `insular` (San Andrés) con un recargo del 70 % (estrategia `ZonaInsular`).
+- Los envíos insulares no aceptan cupón: si se envía un cupón con la zona insular, se lanza el error
+  "los envíos insulares no aceptan cupón".
+- Pruebas INS01–INS06, escritas antes de la implementación.
+
 ## [2.0.0] - 2026-11-11
 
 ### Changed
@@ -45,6 +53,7 @@ y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - Código heredado `envios.js` (traducción fiel de `envios.py`) con `CONFIG` personalizado
   para el código 0182410125: L1 = 3, L2 = 10, rural 20 %, nacional 50 %, VIP 15 %, fin de semana $2.000.
 
+[2.1.0]: https://github.com/calo159/parcialll/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/calo159/parcialll/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/calo159/parcialll/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/calo159/parcialll/releases/tag/v1.0.0
