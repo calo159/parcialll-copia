@@ -1,4 +1,4 @@
-// envios.js — cálculo del costo de envío de EnvíaYa (v2.0.0)
+// envios.js — cálculo del costo de envío de EnvíaYa (v2.1.0)
 // Especificación personalizada: código 0182410125 (A=4 B=1 C=0 D=1 E=2 F=5)
 "use strict";
 
@@ -13,6 +13,7 @@ const VALOR_KG_ADICIONAL = 800;
 // ---- Recargos (R4, R5) ----
 const RECARGO_RURAL = 0.2;
 const RECARGO_NACIONAL = 0.5;
+const RECARGO_INSULAR = 0.7; // CR-01: San Andrés
 const RECARGO_FIN_DE_SEMANA = 2000; // E par: se suma antes de los descuentos
 const DIA_MINIMO = 1;
 const DIA_MAXIMO = 7;
@@ -31,6 +32,10 @@ const DECIMALES_TOLERANCIA = 6;
 class EstrategiaZona {
   aplicarRecargo(_tarifa) {
     throw new Error("EstrategiaZona es abstracta: implemente aplicarRecargo");
+  }
+
+  get aceptaCupon() {
+    return true;
   }
 }
 
@@ -63,10 +68,22 @@ class ZonaNacional extends ZonaConRecargo {
   }
 }
 
+// CR-01: zona insular con recargo del 70 %; no acepta cupones
+class ZonaInsular extends ZonaConRecargo {
+  constructor() {
+    super(RECARGO_INSULAR);
+  }
+
+  get aceptaCupon() {
+    return false;
+  }
+}
+
 const ESTRATEGIAS_ZONA = new Map([
   ["urbana", new ZonaUrbana()],
   ["rural", new ZonaRural()],
   ["nacional", new ZonaNacional()],
+  ["insular", new ZonaInsular()],
 ]);
 
 // ===== Funciones extraídas =====
@@ -122,7 +139,7 @@ function redondear(costo) {
 /**
  * Calcula el costo de un envío.
  * @param {number} peso   kg, 0 < peso <= 50
- * @param {string} zona   "urbana" | "rural" | "nacional"
+ * @param {string} zona   "urbana" | "rural" | "nacional" | "insular"
  * @param {string} cliente "normal" | "frecuente" | "vip"
  * @param {number} dia    1..7 (6 = sábado, 7 = domingo)
  * @param {string|null} [cupon] "ENVIO10" u omitido
@@ -132,6 +149,9 @@ function calc(peso, zona, cliente, dia, cupon = null) {
   validarPeso(peso);
   validarDia(dia);
   const estrategiaZona = obtenerEstrategiaZona(zona);
+  if (cupon !== null && cupon !== undefined && !estrategiaZona.aceptaCupon) {
+    throw new Error("los envíos insulares no aceptan cupón");
+  }
   let costo = estrategiaZona.aplicarRecargo(tarifaBase(peso));
   if (esFinDeSemana(dia)) costo += RECARGO_FIN_DE_SEMANA;
   costo = aplicarDescuentos(costo, cliente, cupon);
@@ -150,5 +170,6 @@ module.exports = {
   ZonaConRecargo,
   ZonaRural,
   ZonaNacional,
+  ZonaInsular,
   ESTRATEGIAS_ZONA,
 };
