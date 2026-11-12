@@ -1,62 +1,91 @@
-// envios.js — código heredado con correcciones (v1.0.1) (traducción fiel de envios.py)
-const CONFIG = {
-  L1: 3, // <- pon tus valores
-  L2: 10,
-  RECARGO_RURAL: 0.2, // como fracción, ej. 0.15
-  RECARGO_NACIONAL: 0.5,
-  DESC_VIP: 0.15,
-  RECARGO_FINDE: 2000, // en pesos
-};
+// envios.js — cálculo del costo de envío de EnvíaYa (refactorización en curso)
+// Especificación personalizada: código 0182410125 (A=4 B=1 C=0 D=1 E=2 F=5)
+"use strict";
 
-function calc(p, z, c, d, cup = null, flag = false) {
-  let t;
-  if (p <= 0 || p > 50) {
+// ---- Peso y tarifa base (R1, R3) ----
+const PESO_MAXIMO_KG = 50;
+const LIMITE_TRAMO_1_KG = 3; // D impar: el tramo 1 NO incluye el límite (peso < 3)
+const LIMITE_TRAMO_2_KG = 10; // el tramo 2 sí incluye el límite (peso <= 10)
+const TARIFA_TRAMO_1 = 6000;
+const TARIFA_TRAMO_2 = 9000;
+const VALOR_KG_ADICIONAL = 800;
+
+// ---- Recargos (R4, R5) ----
+const RECARGO_RURAL = 0.2;
+const RECARGO_NACIONAL = 0.5;
+const RECARGO_FIN_DE_SEMANA = 2000; // E par: se suma antes de los descuentos
+const DIA_MINIMO = 1;
+const DIA_MAXIMO = 7;
+const SABADO = 6;
+
+// ---- Descuentos (R6, R7) ----
+const DESCUENTOS_CLIENTE = Object.freeze({ normal: 0, frecuente: 0.05, vip: 0.15 });
+const CUPONES = Object.freeze({ ENVIO10: 0.1 });
+
+// ---- Costo mínimo y redondeo (R8) ----
+const COSTO_MINIMO = 5000;
+const MULTIPLO_REDONDEO = 100;
+const DECIMALES_TOLERANCIA = 6;
+
+function validarPeso(peso) {
+  if (typeof peso !== "number" || !(peso > 0 && peso <= PESO_MAXIMO_KG)) {
     throw new Error("peso inválido");
   }
-  if (!Number.isInteger(d) || d < 1 || d > 7) {
-    throw new Error("día inválido"); // DEF-05
-  }
-  if (p < CONFIG.L1) { // DEF-01: el tramo 1 no incluye el límite (D impar)
-    t = 6000;
-  } else if (p <= CONFIG.L2) {
-    t = 9000;
-  } else {
-    t = 9000 + (p - CONFIG.L2) * 800;
-  }
-  if (z == "urbana") {
-    t = t;
-  } else if (z == "rural") {
-    t = t + t * CONFIG.RECARGO_RURAL;
-  } else if (z == "nacional") {
-    t = t + t * CONFIG.RECARGO_NACIONAL;
-  } else {
-    throw new Error("zona inválida"); // DEF-04
-  }
-  // fin de semana
-  if (d >= 6) { // DEF-02: sábado (6) y domingo (7)
-    t = t + CONFIG.RECARGO_FINDE;
-  }
-  if (c == "frecuente") {
-    t = t - t * 0.05;
-  }
-  if (c == "vip") {
-    t = t - t * CONFIG.DESC_VIP;
-  }
-  if (cup != null) {
-    if (cup == "ENVIO10") {
-      t = t - t * 0.1;
-    } else {
-      throw new Error("cupón inválido"); // DEF-03: F impar, cupón inexistente es error
-    }
-  }
-  if (t < 5000) {
-    t = 5000;
-  }
-  if (flag) {
-    console.log("costo:", t);
-  }
-  // DEF-06: redondeo al múltiplo de 100 más cercano ($50 sube)
-  return Math.floor(Number(t.toFixed(6)) / 100 + 0.5) * 100;
 }
 
-module.exports = { calc, CONFIG };
+function validarDia(dia) {
+  if (!Number.isInteger(dia) || dia < DIA_MINIMO || dia > DIA_MAXIMO) {
+    throw new Error("día inválido");
+  }
+}
+
+function tarifaBase(peso) {
+  if (peso < LIMITE_TRAMO_1_KG) return TARIFA_TRAMO_1;
+  if (peso <= LIMITE_TRAMO_2_KG) return TARIFA_TRAMO_2;
+  return TARIFA_TRAMO_2 + (peso - LIMITE_TRAMO_2_KG) * VALOR_KG_ADICIONAL;
+}
+
+function aplicarRecargoZona(tarifa, zona) {
+  if (zona === "urbana") return tarifa;
+  if (zona === "rural") return tarifa + tarifa * RECARGO_RURAL;
+  if (zona === "nacional") return tarifa + tarifa * RECARGO_NACIONAL;
+  throw new Error("zona inválida");
+}
+
+function esFinDeSemana(dia) {
+  return dia >= SABADO;
+}
+
+function porcentajeCliente(cliente) {
+  return Object.hasOwn(DESCUENTOS_CLIENTE, cliente) ? DESCUENTOS_CLIENTE[cliente] : 0;
+}
+
+function porcentajeCupon(cupon) {
+  if (cupon === null || cupon === undefined) return 0;
+  if (!Object.hasOwn(CUPONES, cupon)) throw new Error("cupón inválido");
+  return CUPONES[cupon];
+}
+
+// B impar: se aplican ambos descuentos, primero el del cliente y luego el cupón
+function aplicarDescuentos(costo, cliente, cupon) {
+  const conDescuentoCliente = costo - costo * porcentajeCliente(cliente);
+  return conDescuentoCliente - conDescuentoCliente * porcentajeCupon(cupon);
+}
+
+function redondear(costo) {
+  const exacto = Number(costo.toFixed(DECIMALES_TOLERANCIA));
+  return Math.floor(exacto / MULTIPLO_REDONDEO + 0.5) * MULTIPLO_REDONDEO;
+}
+
+function calc(peso, zona, cliente, dia, cupon = null, flag = false) {
+  validarPeso(peso);
+  validarDia(dia);
+  let costo = aplicarRecargoZona(tarifaBase(peso), zona);
+  if (esFinDeSemana(dia)) costo += RECARGO_FIN_DE_SEMANA;
+  costo = aplicarDescuentos(costo, cliente, cupon);
+  const resultado = redondear(Math.max(costo, COSTO_MINIMO));
+  if (flag) console.log("costo:", Math.max(costo, COSTO_MINIMO));
+  return resultado;
+}
+
+module.exports = { calc, tarifaBase, esFinDeSemana, aplicarDescuentos, redondear };
