@@ -7,6 +7,27 @@ y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-11
+
+### Changed
+- **BREAKING:** `calc(peso, zona, cliente, dia, cupon)` ya no recibe el argumento `flag` ni imprime el costo en consola.
+  Quien necesite mostrar el costo debe hacerlo con el valor retornado.
+- Patrón Estrategia para el recargo por zona: `EstrategiaZona`, `ZonaUrbana`, `ZonaConRecargo`, `ZonaRural`, `ZonaNacional`.
+- Se extraen funciones (`validarPeso`, `validarDia`, `tarifaBase`, `esFinDeSemana`, `aplicarDescuentos`, `redondear`, …);
+  la complejidad ciclomática de `calc` baja de 18 a 2.
+- Los números mágicos se reemplazan por constantes con nombre.
+
+### Added
+- Alias `calcularCosto` de `calc`.
+- 11 pruebas unitarias de las estrategias y de las funciones extraídas (UT01–UT11).
+
+### Removed
+- Argumento `flag` de `calc`.
+- Objeto global mutable `CONFIG` (reemplazado por constantes inmutables).
+
+### Security
+- El peso debe ser un número: un texto como `"5"` ya no se acepta por conversión implícita.
+
 ## [1.0.1] - 2026-11-11
 
 ### Fixed
@@ -24,5 +45,6 @@ y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - Código heredado `envios.js` (traducción fiel de `envios.py`) con `CONFIG` personalizado
   para el código 0182410125: L1 = 3, L2 = 10, rural 20 %, nacional 50 %, VIP 15 %, fin de semana $2.000.
 
+[2.0.0]: https://github.com/calo159/parcialll/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/calo159/parcialll/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/calo159/parcialll/releases/tag/v1.0.0

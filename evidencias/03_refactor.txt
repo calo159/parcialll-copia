@@ -1,0 +1,93 @@
+PASS tests/estrategias.test.js
+  Estrategias de zona
+    √ UT01 la estrategia abstracta no se puede usar directamente (14 ms)
+    √ UT02 ZonaUrbana no cobra recargo
+    √ UT03 ZonaRural cobra 20 %
+    √ UT04 ZonaNacional cobra 50 %
+    √ UT05 el registro contiene las zonas válidas (1 ms)
+  Funciones extraídas
+    √ UT06 tarifaBase en los límites 2.99 / 3 / 10 / 12
+    √ UT07 esFinDeSemana solo para 6 y 7
+    √ UT08 aplicarDescuentos combina cliente y luego cupón
+    √ UT09 redondear: $50 sube, $49.99 baja (1 ms)
+    √ UT10 un peso que no es número ("5") lanza 'peso inválido'
+    √ UT11 supuesto: un cliente no especificado se trata como normal (sin descuento) -> 9000
+
+PASS tests/cajaNegra.validaciones.test.js
+  R1 - Validación del peso
+    √ TC01 [R1][VL] peso = 0 lanza 'peso inválido' (11 ms)
+    √ TC02 [R1][PE] peso negativo (-1) lanza error
+    √ TC03 [R1][VL] peso = 50.01 (PMAX + 0.01) lanza error
+    √ TC04 [R1][VL] peso = 50 (PMAX) es válido -> 41000
+    √ TC05 [R1][VL] peso = 0.01 es válido -> 6000 (1 ms)
+  R3 - Valores límite de los tramos
+    √ TC06 [R3][VL] peso = 2.99 (L1 - 0.01) -> tramo 1 = 6000
+    √ TC07 [R3][VL] peso = 3 (L1, excluido) -> tramo 2 = 9000
+    √ TC08 [R3][VL] peso = 3.01 (L1 + 0.01) -> 9000
+    √ TC09 [R3][VL] peso = 10 (L2, incluido) -> 9000
+    √ TC10 [R3][VL] peso = 10.01 (L2 + 0.01) -> 9008 redondeado = 9000 (1 ms)
+    √ TC11 [R3][PE] peso = 10.5 -> 9000 + 0.5*800 = 9400
+    √ TC12 [R3][VL] peso = 49.99 (PMAX - 0.01) -> 40992 redondeado = 41000 (4 ms)
+    √ TC35 [R3][VL] peso = 3 rural -> 9000 * 1.20 = 10800
+  R2 - Validación de zona y día
+    √ TC13 [R2][PE] zona inexistente 'marte' lanza error
+    √ TC14 [R2][VL] día = 0 lanza error (1 ms)
+    √ TC15 [R2][VL] día = 8 lanza error
+
+PASS tests/cajaBlanca.test.js
+  Caminos independientes de calc
+    √ CB01 camino base: 5 kg urbana normal lunes -> 9000 (1 ms)
+    √ CB02 peso <= 0 verdadero -> error (10 ms)
+    √ CB03 peso > 50 verdadero -> error (1 ms)
+    √ CB04 tramo 1: 2 kg -> 6000
+    √ CB05 tramo 3: 12 kg -> 9000 + 2*800 = 10600
+    √ CB06 zona rural -> 10800
+    √ CB07 zona nacional -> 13500
+    √ CB08 ninguna zona coincide ('marte') -> error (1 ms)
+    √ CB09 fin de semana (domingo) -> 11000
+    √ CB10 cliente frecuente -> 8550 -> 8600
+    √ CB11 cliente vip -> 7650 -> 7700
+    √ CB12 cupón ENVIO10 -> 8100 (1 ms)
+    √ CB13 cupón distinto de ENVIO10 ('XYZ') -> error
+    √ CB14 costo < 5000: 1 kg vip ENVIO10 -> 5000
+    √ CB15 (v2) flag eliminado: un 6.º argumento no imprime nada -> 9000 (1 ms)
+
+PASS tests/cajaNegra.reglas.test.js
+  R4 - Recargo por zona
+    √ TC16 [R4][PE] rural, 5 kg -> 9000 * 1.20 = 10800
+    √ TC17 [R4][PE] nacional, 5 kg -> 9000 * 1.50 = 13500
+    √ TC18 [R4][PE] nacional, 1 kg -> 6000 * 1.50 = 9000 (1 ms)
+  R5 - Recargo de fin de semana
+    √ TC19 [R5][VL] sábado (6) -> 9000 + 2000 = 11000
+    √ TC20 [R5][VL] domingo (7) -> 11000
+    √ TC21 [R5][VL] viernes (5) -> sin recargo = 9000
+  R6 - Tabla de decisión cliente x cupón x fin de semana
+    √ TC22 [R6][TD] frecuente, entre semana -> 8550 redondeado = 8600
+    √ TC23 [R6][TD] vip, entre semana -> 7650 redondeado = 7700 (1 ms)
+    √ TC24 [R6][TD] normal + ENVIO10 -> 8100
+    √ TC25 [R6][TD] vip + ENVIO10 -> 9000*0.85*0.90 = 6885 -> 6900
+    √ TC36 [R6][TD] frecuente + ENVIO10 -> 9000*0.95*0.90 = 7695 -> 7700
+    √ TC26 [R6][TD] frecuente + ENVIO10 + domingo -> 11000*0.95*0.90 = 9405 -> 9400
+    √ TC27 [R6][TD] vip + ENVIO10 + sábado -> 11000*0.85*0.90 = 8415 -> 8400
+    √ TC28 [R6][TD] frecuente + sábado -> 11000*0.95 = 10450 -> 10500
+    √ TC29 [R6][TD] vip + domingo -> 11000*0.85 = 9350 -> 9400
+  R7 - Cupón inexistente
+    √ TC30 [R7][PE] cupón 'GRATIS' lanza error (F impar) (10 ms)
+  R8 - Costo mínimo y redondeo
+    √ TC31 [R8][VL] 1 kg vip + ENVIO10 -> 4590 sube al mínimo 5000
+    √ TC32 [R8][VL] 2 kg frecuente + ENVIO10 -> 5130 -> 5100
+  Casos integrales (todas las reglas)
+    √ TC33 [R3-R8] 4 kg rural vip sábado ENVIO10 -> 9792 -> 9800
+    √ TC34 [R3-R8] 12.5 kg nacional frecuente domingo ENVIO10 -> 15817.5 -> 15800
+
+-----------|---------|----------|---------|---------|-------------------
+File       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-----------|---------|----------|---------|---------|-------------------
+All files  |     100 |      100 |     100 |     100 |                   
+ envios.js |     100 |      100 |     100 |     100 |                   
+-----------|---------|----------|---------|---------|-------------------
+Test Suites: 4 passed, 4 total
+Tests:       62 passed, 62 total
+Snapshots:   0 total
+Time:        1.028 s
+Ran all test suites.

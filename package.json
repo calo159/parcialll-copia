@@ -1,6 +1,6 @@
 {
   "name": "enviaya-envios",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "EnvíaYa - cálculo del costo de envíos (Parcial 3, Ingeniería de Software I)",
   "main": "envios.js",
   "scripts": {
